@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -39,7 +39,21 @@ func _countUsable(use int, fix int) int {
 	return fix*(fix-1)/2 + use
 }
 
-func _loadStorageFile(path string) (comStorage []Item, vipStorage []Item) {
+func splitInit(s rune) bool {
+	if s == ' ' || s == '"' {
+		return true
+	}
+	return false
+}
+
+func splitUnderline(s rune) bool {
+	if s == '_' {
+		return true
+	}
+	return false
+}
+
+func _loadStorageFile(path string) (name string, comStorage []Item, vipStorage []Item) {
 	//fmt.Println(path)
 	f, err := os.Open(path)
 	if err != nil {
@@ -51,22 +65,44 @@ func _loadStorageFile(path string) (comStorage []Item, vipStorage []Item) {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
-	//	re := regexp.MustCompile(`[\t ]*DEPOSIT_ITEMS [({"]*`)
-	re := regexp.MustCompile(`\"(.*?)\"`)
-
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		// 是否为".storage.o"结尾
-		if strings.HasPrefix(line, "DEPOSIT_ITEMS") {
-			slice := re.FindStringSubmatch(line)
-			fmt.Println(slice)
-
-			//			if slice != nil {
-			//				ret[slice[1]] = slice[2]
-			//				log.Println(slice[1], "=", slice[2])
-			//			}
+		ret := strings.FieldsFunc(line, splitInit)
+		if len(ret) > 1 {
+			switch ret[0] {
+			case "DEPOSIT_ITEMS":
+				comStorage = parseItem(ret)
+			case "POS_ITEMS":
+				vipStorage = parseItem(ret)
+			case "ACCOUNT":
+				name = ret[1]
+			}
 		}
 	}
+	fmt.Println(name, comStorage, vipStorage)
+	return
+}
 
+func parseItem(str []string) (ret []Item) {
+	for _, v := range str {
+		if v == "0_0_0" {
+			return
+		}
+		if strings.Count(v, "_") == 2 {
+			under := strings.FieldsFunc(v, splitUnderline)
+			if len(under) > 2 {
+				id, err1 := strconv.Atoi(under[0])
+				use, err2 := strconv.Atoi(under[1])
+				fix, err3 := strconv.Atoi(under[2])
+				if err1 != nil || err2 != nil || err3 != nil {
+					return
+				}
+				conut := _countUsable(use, fix)
+				item := Item{id, conut}
+				ret = append(ret, item)
+			}
+		}
+	}
 	return
 }
