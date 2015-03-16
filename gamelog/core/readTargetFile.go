@@ -1,12 +1,13 @@
-package main
+package core
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/NicholeGit/work/gamelog/util"
 )
 
 func _loadTargetFile(path string) (ret []string) {
@@ -53,15 +54,18 @@ func splitUnderline(s rune) bool {
 	return false
 }
 
-func _loadStorageFile(path string) (name string, comStorage []Item, vipStorage []Item) {
+//读取具体文件
+func _loadStorageFile(path string) (user *util.User) {
 	//fmt.Println(path)
+	u := new(util.User)
 	f, err := os.Open(path)
 	if err != nil {
 		log.Println(path, err)
 		return
 	}
-	comStorage = make([]Item, 0, 120)
-	vipStorage = make([]Item, 0, 240)
+	u.ComStorage = make([]util.Item, 0, 120)
+	u.VipStorage = make([]util.Item, 0, 240)
+
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
@@ -72,19 +76,19 @@ func _loadStorageFile(path string) (name string, comStorage []Item, vipStorage [
 		if len(ret) > 1 {
 			switch ret[0] {
 			case "DEPOSIT_ITEMS":
-				comStorage = parseItem(ret)
+				u.ComStorage = parseItem(ret)
 			case "POS_ITEMS":
-				vipStorage = parseItem(ret)
+				u.VipStorage = parseItem(ret)
 			case "ACCOUNT":
-				name = ret[1]
+				u.Account = ret[1]
+
 			}
 		}
 	}
-	fmt.Println(name, comStorage, vipStorage)
-	return
+	return u
 }
 
-func parseItem(str []string) (ret []Item) {
+func parseItem(str []string) (ret []util.Item) {
 	for _, v := range str {
 		if v == "0_0_0" {
 			return
@@ -99,7 +103,7 @@ func parseItem(str []string) (ret []Item) {
 					return
 				}
 				conut := _countUsable(use, fix)
-				item := Item{id, conut}
+				item := util.Item{id, conut}
 				ret = append(ret, item)
 			}
 		}
