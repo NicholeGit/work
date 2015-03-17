@@ -2,13 +2,17 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"os"
 
 	"github.com/NicholeGit/work/gamelog/cfg"
 	"github.com/NicholeGit/work/gamelog/core"
 )
 
 func main() {
+	upinfo := flag.String("path", "data/upinfo.tmp", "需要同步的记录文件的路径")
+	flag.Parse()
 	// start logger
 	config := cfg.Get()
 	if config["log"] != "" {
@@ -22,8 +26,12 @@ func main() {
 		}
 	}()
 
-	inco, err := core.NewInsertCore()
-	_ = err
+	cfg.NOTICE("upinfo name is ", *upinfo)
+	inco, err := core.NewInsertCore(*upinfo)
+	if err != nil {
+		cfg.ERR("insertCore init is error")
+		os.Exit(1)
+	}
 	inco.Run()
 	inco.Print()
 	log.Println("run end")

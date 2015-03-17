@@ -33,10 +33,11 @@ type RunState struct {
 }
 
 type InsertCore struct {
-	mutexUser sync.Mutex
-	userList  []util.User
-	filePath  []string
-	wg        sync.WaitGroup
+	targetFile string
+	mutexUser  sync.Mutex
+	userList   []util.User
+	filePath   []string
+	wg         sync.WaitGroup
 
 	DB *DataBase
 
@@ -57,8 +58,9 @@ type InsertCore struct {
 	//	readChan chan *CallInfo
 }
 
-func NewInsertCore() (*InsertCore, error) {
+func NewInsertCore(fileName string) (*InsertCore, error) {
 	s := new(InsertCore)
+	s.targetFile = fileName
 	if err := s.init(); err != nil {
 		return nil, err
 	}
@@ -67,14 +69,16 @@ func NewInsertCore() (*InsertCore, error) {
 
 func (this *InsertCore) init() error {
 	this.userList = make([]util.User, 0, 1024)
-	this.filePath = _loadTargetFile("data/upinfo.tmp")
+	var err error
+	if this.filePath, err = _loadTargetFile(this.targetFile); err != nil {
+		return err
+	}
 	//log.Println(filePath)
 	//test:gamlaxy@tcp(10.100.12.95:3306)/golang?charset=utf8
 	config := cfg.Get()
 	str := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8",
 		config["account"], config["password"], config["ip"], config["db"])
 	cfg.DEBUG("dataSourceName:\t", str)
-	var err error
 	this.DB, err = Open("mysql", str)
 	return err
 }

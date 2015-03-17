@@ -7,14 +7,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/NicholeGit/work/gamelog/cfg"
 	"github.com/NicholeGit/work/gamelog/util"
 )
 
-func _loadTargetFile(path string) (ret []string) {
+func _loadTargetFile(path string) (ret []string, err error) {
 	f, err := os.Open(path)
 	if err != nil {
-		log.Println(path, err)
-		return
+		cfg.ERR("path cannot find")
+		return nil, err
 	}
 	ret = make([]string, 0, 1024)
 	scanner := bufio.NewScanner(f)
@@ -28,7 +29,7 @@ func _loadTargetFile(path string) (ret []string) {
 		}
 	}
 
-	return
+	return ret, nil
 }
 
 // use 使用次数

@@ -27,10 +27,7 @@ func Get() map[string]string {
 }
 
 func Reload() {
-	path := os.Getenv("GONET_CONFIG")
-	if path == "" {
-		path = _DEF_CONFIG
-	}
+	path := _DEF_CONFIG
 
 	_lock.Lock()
 	log.Println("Loading Config from:", path)
