@@ -1,9 +1,11 @@
 package cfg
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 //---------------------------------------------------------- 通用系统日志
@@ -45,11 +47,13 @@ func StartLogger(path string) {
 	if !strings.HasPrefix(path, "/") {
 		path = /*os.Getenv("GOPATH") + */ "./" + path
 	}
-	log.Printf("StartLogger %v\n", path)
+	t := time.Now() //获取当前时间的结构体
+	path = fmt.Sprintf("%s_%s.log", path, t.Format("20060102150405"))
+
 	// 打开日志文件
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		log.Printf("cannot open logfile %v\n", err)
+		ERR("cannot open logfile %v\n", err)
 	}
 
 	// 创建MUX
