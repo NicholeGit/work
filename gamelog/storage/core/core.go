@@ -57,7 +57,7 @@ type InsertCore struct {
 	usedataPath string
 	//	mutexUser   sync.Mutex
 	//	userList    []util.User
-	filePath []string
+	filePath *UserFileSet
 
 	DB *DataBase
 
@@ -205,7 +205,7 @@ func (this *InsertCore) Run() {
 	helper.NOTICE("run start")
 	go this.StatsAgent()
 	var wg sync.WaitGroup
-	for _, value := range this.filePath {
+	for _, value := range this.filePath.List() {
 		this.gchan <- true
 		wg.Add(1)
 		go func(file string) {
@@ -258,7 +258,7 @@ func (this *InsertCore) Run() {
 // Get buffer pool state.
 func (this *InsertCore) GetRunState() RunState {
 	return RunState{
-		Total:         len(this.filePath),
+		Total:         this.filePath.Len(),
 		LoadSucceed:   atomic.LoadUint64(&this.loadSucceed),
 		LoadFailure:   atomic.LoadUint64(&this.loadFailure),
 		DeleteSucceed: atomic.LoadUint64(&this.deleteSucceed),

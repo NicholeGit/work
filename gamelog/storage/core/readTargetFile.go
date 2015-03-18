@@ -11,21 +11,20 @@ import (
 	"github.com/NicholeGit/work/gamelog/util"
 )
 
-func _loadTargetFile(path string) (ret []string, err error) {
+func _loadTargetFile(path string) (ret *UserFileSet, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		helper.ERR("path cannot find")
 		return nil, err
 	}
-	ret = make([]string, 0, 1024)
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
-
+	ret = NewUserFileSet()
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		// 是否为".storage.o"结尾
 		if strings.HasSuffix(line, ".storage.o") {
-			ret = append(ret, line)
+			ret.Add(line)
 		}
 	}
 
