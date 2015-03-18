@@ -53,7 +53,7 @@ func StartLogger(path string) {
 	// 打开日志文件
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		ERR("cannot open logfile %v\n", err)
+		log.Println("cannot open logfile %v\n", err)
 	}
 
 	// 创建MUX

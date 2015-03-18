@@ -1,11 +1,11 @@
-package cfg
+package helper
 
 import (
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/xtaci/gonet/src/cfg"
+	"github.com/NicholeGit/work/gamelog/cfg"
 )
 
 var (

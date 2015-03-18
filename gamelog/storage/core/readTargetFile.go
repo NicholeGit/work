@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NicholeGit/work/gamelog/cfg"
+	"github.com/NicholeGit/work/gamelog/helper"
 	"github.com/NicholeGit/work/gamelog/util"
 )
 
 func _loadTargetFile(path string) (ret []string, err error) {
 	f, err := os.Open(path)
 	if err != nil {
-		cfg.ERR("path cannot find")
+		helper.ERR("path cannot find")
 		return nil, err
 	}
 	ret = make([]string, 0, 1024)
@@ -56,14 +56,14 @@ func splitUnderline(s rune) bool {
 }
 
 //读取具体文件
-func _loadStorageFile(path string) (user *util.User) {
-	//fmt.Println(path)
+func _loadStorageFile(path string) (user *util.User, err error) {
 	u := new(util.User)
 	f, err := os.Open(path)
 	if err != nil {
 		log.Println(path, err)
-		return
+		return nil, err
 	}
+	defer f.Close()
 	u.ComStorage = make([]util.Item, 0, 120)
 	u.VipStorage = make([]util.Item, 0, 240)
 
@@ -86,7 +86,7 @@ func _loadStorageFile(path string) (user *util.User) {
 			}
 		}
 	}
-	return u
+	return u, nil
 }
 
 func parseItem(str []string) (ret []util.Item) {

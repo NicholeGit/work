@@ -16,3 +16,8 @@ const (
 	COMMON
 	VIP
 )
+
+const (
+	_ = iota
+	TinsertCoreStat
+)
