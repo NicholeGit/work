@@ -2,7 +2,7 @@ package core
 
 import (
 	"bufio"
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -60,7 +60,7 @@ func _loadStorageFile(path string) (user *util.User, err error) {
 	u := new(util.User)
 	f, err := os.Open(path)
 	if err != nil {
-		log.Println(path, err)
+		helper.WARN(fmt.Sprintf("%s can't open err(%v)", path, err))
 		return nil, err
 	}
 	defer f.Close()

@@ -55,14 +55,16 @@ func (this RunState) Print() string {
 type InsertCore struct {
 	targetFile  string
 	usedataPath string
-	mutexUser   sync.Mutex
-	userList    []util.User
-	filePath    []string
+	//	mutexUser   sync.Mutex
+	//	userList    []util.User
+	filePath []string
 
 	DB *DataBase
 
 	//channel
 	gchan chan bool //控制goroutine数量
+
+	//	gReadChan chan bool //控制goroutine数量
 
 	//读取文件统计
 	loadSucceed uint64 //完成读取数量
@@ -92,7 +94,7 @@ func NewInsertCore(fileName string, path string) (*InsertCore, error) {
 }
 
 func (this *InsertCore) init() error {
-	this.userList = make([]util.User, 0, 1024)
+	//	this.userList = make([]util.User, 0, 1024)
 	var err error
 	if this.filePath, err = _loadTargetFile(this.targetFile); err != nil {
 		return err
@@ -100,12 +102,13 @@ func (this *InsertCore) init() error {
 	//log.Println(filePath)
 	//test:gamlaxy@tcp(10.100.12.95:3306)/golang?charset=utf8
 	config := cfg.Get()
-	str := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8",
+	str := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&loc=Asia%%2FShanghai",
 		config["account"], config["password"], config["ip"], config["db"])
 	helper.NOTICE("dataSourceName:\t", str)
 	this.DB, err = Open("mysql", str)
 
 	this.gchan = make(chan bool, GOROUTINE_COUNT)
+	//	this.gReadChan = make(chan bool, 1024)
 	return err
 }
 
@@ -155,7 +158,7 @@ func (this *InsertCore) install(user *util.User) {
 		if _, err := this.DB.InsertUser(acc, comObject.ID, comObject.Count, util.COMMON); err != nil {
 			atomic.AddUint64(&this.insertFailure, 1)
 			isSucceed = false
-			helper.WARN("insert %s %d(%d)is by com err(%v) ", acc, comObject.ID, comObject.Count, err)
+			helper.WARN(fmt.Sprintf("insert %s %d(%d)is by com err(%v) ", acc, comObject.ID, comObject.Count, err))
 		} else {
 			atomic.AddUint64(&this.insertSucceed, 1)
 
@@ -165,7 +168,7 @@ func (this *InsertCore) install(user *util.User) {
 		if _, err := this.DB.InsertUser(acc, vipObject.ID, vipObject.Count, util.VIP); err != nil {
 			atomic.AddUint64(&this.insertFailure, 1)
 			isSucceed = false
-			helper.WARN("insert %s %d(%d) by vip is err(%v) ", acc, vipObject.ID, vipObject.Count, err)
+			helper.WARN(fmt.Sprintf("insert %s %d(%d) by vip is err(%v) ", acc, vipObject.ID, vipObject.Count, err))
 		} else {
 			atomic.AddUint64(&this.insertSucceed, 1)
 		}
@@ -174,7 +177,7 @@ func (this *InsertCore) install(user *util.User) {
 		atomic.AddUint64(&this.allSucceed, 1)
 	} else {
 		atomic.AddUint64(&this.allFailure, 1)
-		helper.ERR("insert %s is err", acc)
+		helper.ERR(fmt.Sprintf("insert %s is err", acc))
 	}
 	return
 
@@ -217,6 +220,40 @@ func (this *InsertCore) Run() {
 	wg.Wait()
 	helper.NOTICE("InsertCore end\t", this.GetRunState().Print())
 }
+
+//func (this *InsertCore) Run() {
+//	helper.NOTICE("run start")
+//	go this.StatsAgent()
+//	var wg sync.WaitGroup
+//	for _, value := range this.filePath {
+//		this.gReadChan <- true
+//		wg.Add(1)
+//		go func(file string) {
+//			defer func() {
+//				wg.Done()
+//				<-this.gReadChan
+//			}()
+//			this.readfile(file)
+//		}(value)
+//	}
+//	wg.Wait()
+
+//	for _, value := range this.userList {
+//		this.gchan <- true
+//		wg.Add(1)
+//		go func(user util.User) {
+//			defer func() {
+//				<-this.gchan
+//				wg.Done()
+//			}()
+
+//			this.install(&user)
+//		}(value)
+//	}
+//	wg.Wait()
+
+//	helper.NOTICE("InsertCore end\t", this.GetRunState().Print())
+//}
 
 // Get buffer pool state.
 func (this *InsertCore) GetRunState() RunState {
