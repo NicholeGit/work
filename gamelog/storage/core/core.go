@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -10,11 +11,10 @@ import (
 	"github.com/NicholeGit/work/gamelog/cfg"
 	"github.com/NicholeGit/work/gamelog/helper"
 	"github.com/NicholeGit/work/gamelog/misc/timer"
-	"github.com/NicholeGit/work/gamelog/util"
 )
 
 const (
-	PRINT_INTERVAL  = 60 //1分钟
+	PRINT_INTERVAL  = 60 //1分钟，输入服务器状态的频率
 	GOROUTINE_COUNT = 64 //同时跑的goroutine数量
 )
 
@@ -52,6 +52,7 @@ func (this RunState) Print() string {
 		this.InsertSucceed+this.InsertFailure, this.InsertSucceed, this.InsertFailure)
 }
 
+// core
 type InsertCore struct {
 	targetFile  string
 	usedataPath string
@@ -99,20 +100,24 @@ func (this *InsertCore) init() error {
 	if this.filePath, err = _loadTargetFile(this.targetFile); err != nil {
 		return err
 	}
-	//log.Println(filePath)
-	//test:gamlaxy@tcp(10.100.12.95:3306)/golang?charset=utf8
 	config := cfg.Get()
 	str := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&loc=Asia%%2FShanghai",
-		config["account"], config["password"], config["ip"], config["db"])
+		config["username"], config["password"], config["ip"], config["db"])
 	helper.NOTICE("dataSourceName:\t", str)
 	this.DB, err = Open("mysql", str)
 
-	this.gchan = make(chan bool, GOROUTINE_COUNT)
+	var count = GOROUTINE_COUNT
+	if config["goroutine_count"] != "" {
+		if id, err := strconv.Atoi(config["goroutine_count"]); err == nil {
+			count = id
+		}
+	}
+	this.gchan = make(chan bool, count)
 	//	this.gReadChan = make(chan bool, 1024)
 	return err
 }
 
-func (this *InsertCore) addUser(user *util.User) error {
+func (this *InsertCore) addUser(user *User) error {
 	//fmt.Println(user)
 	if len(user.Account) == 0 {
 		return errors.New("Account is empty")
@@ -123,7 +128,7 @@ func (this *InsertCore) addUser(user *util.User) error {
 	return nil
 }
 
-func (this *InsertCore) readfile(fileName string) (user *util.User, err error) {
+func (this *InsertCore) readfile(fileName string) (user *User, err error) {
 	path := this.usedataPath + fileName
 	user, err = _loadStorageFile(path)
 	if err != nil {
@@ -139,7 +144,7 @@ func (this *InsertCore) readfile(fileName string) (user *util.User, err error) {
 	}
 }
 
-func (this *InsertCore) install(user *util.User) {
+func (this *InsertCore) install(user *User) {
 	acc := user.Account
 	if res, err := this.DB.DeleteUser(acc); err != nil {
 		atomic.AddUint64(&this.deleteFailure, 1)
@@ -155,7 +160,7 @@ func (this *InsertCore) install(user *util.User) {
 	}
 	var isSucceed = true
 	for _, comObject := range user.ComStorage {
-		if _, err := this.DB.InsertUser(acc, comObject.ID, comObject.Count, util.COMMON); err != nil {
+		if _, err := this.DB.InsertUser(acc, comObject.ID, comObject.Count, COMMON); err != nil {
 			atomic.AddUint64(&this.insertFailure, 1)
 			isSucceed = false
 			helper.WARN(fmt.Sprintf("insert %s %d(%d)is by com err(%v) ", acc, comObject.ID, comObject.Count, err))
@@ -165,7 +170,7 @@ func (this *InsertCore) install(user *util.User) {
 		}
 	}
 	for _, vipObject := range user.VipStorage {
-		if _, err := this.DB.InsertUser(acc, vipObject.ID, vipObject.Count, util.VIP); err != nil {
+		if _, err := this.DB.InsertUser(acc, vipObject.ID, vipObject.Count, VIP); err != nil {
 			atomic.AddUint64(&this.insertFailure, 1)
 			isSucceed = false
 			helper.WARN(fmt.Sprintf("insert %s %d(%d) by vip is err(%v) ", acc, vipObject.ID, vipObject.Count, err))
@@ -196,7 +201,7 @@ func (this *InsertCore) StatsAgent() {
 		select {
 		case <-queue_timer:
 			helper.INFO(this.GetRunState().Print())
-			timer.Add(util.TinsertCoreStat, time.Now().Unix()+PRINT_INTERVAL, queue_timer)
+			timer.Add(TinsertCoreStat, time.Now().Unix()+PRINT_INTERVAL, queue_timer)
 		}
 	}
 }
@@ -213,7 +218,6 @@ func (this *InsertCore) Run() {
 				<-this.gchan
 				wg.Done()
 			}()
-
 			this.updateDB(file)
 		}(value)
 	}
@@ -221,41 +225,7 @@ func (this *InsertCore) Run() {
 	helper.NOTICE("InsertCore end\t", this.GetRunState().Print())
 }
 
-//func (this *InsertCore) Run() {
-//	helper.NOTICE("run start")
-//	go this.StatsAgent()
-//	var wg sync.WaitGroup
-//	for _, value := range this.filePath {
-//		this.gReadChan <- true
-//		wg.Add(1)
-//		go func(file string) {
-//			defer func() {
-//				wg.Done()
-//				<-this.gReadChan
-//			}()
-//			this.readfile(file)
-//		}(value)
-//	}
-//	wg.Wait()
-
-//	for _, value := range this.userList {
-//		this.gchan <- true
-//		wg.Add(1)
-//		go func(user util.User) {
-//			defer func() {
-//				<-this.gchan
-//				wg.Done()
-//			}()
-
-//			this.install(&user)
-//		}(value)
-//	}
-//	wg.Wait()
-
-//	helper.NOTICE("InsertCore end\t", this.GetRunState().Print())
-//}
-
-// Get buffer pool state.
+// 得到运行状态
 func (this *InsertCore) GetRunState() RunState {
 	return RunState{
 		Total:         this.filePath.Len(),

@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/NicholeGit/work/gamelog/helper"
-	"github.com/NicholeGit/work/gamelog/util"
 )
 
+// 读取upinfo.tmp，得到这次同步需要有那些文件需要处理
 func _loadTargetFile(path string) (ret *UserFileSet, err error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -55,16 +55,16 @@ func splitUnderline(s rune) bool {
 }
 
 //读取具体文件
-func _loadStorageFile(path string) (user *util.User, err error) {
-	u := new(util.User)
+func _loadStorageFile(path string) (user *User, err error) {
+	u := new(User)
 	f, err := os.Open(path)
 	if err != nil {
 		helper.WARN(fmt.Sprintf("%s can't open err(%v)", path, err))
 		return nil, err
 	}
 	defer f.Close()
-	u.ComStorage = make([]util.Item, 0, 120)
-	u.VipStorage = make([]util.Item, 0, 240)
+	u.ComStorage = make([]Item, 0, 120)
+	u.VipStorage = make([]Item, 0, 240)
 
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
@@ -88,7 +88,7 @@ func _loadStorageFile(path string) (user *util.User, err error) {
 	return u, nil
 }
 
-func parseItem(str []string) (ret []util.Item) {
+func parseItem(str []string) (ret []Item) {
 	for _, v := range str {
 		if v == "0_0_0" {
 			return
@@ -103,7 +103,7 @@ func parseItem(str []string) (ret []util.Item) {
 					return
 				}
 				conut := _countUsable(use, fix)
-				item := util.Item{id, conut}
+				item := Item{id, conut}
 				ret = append(ret, item)
 			}
 		}

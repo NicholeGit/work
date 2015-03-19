@@ -8,7 +8,6 @@
 │      ├─100
 │      ├─110
 │      └─50
-├─doc	 --文档
 ├─helper	--一些方便的方法
 │      export.go	--封装log文件
 │      profilingtool.go
@@ -23,7 +22,8 @@
 │  │  query.sh	--查询数据库脚本
 │  │  run.sh	--linux运行文件
 │  │  storage.sql	--建库文件
+│  │  设计.md
 │  │ 
 │  └─core	--主要逻辑
-└─util	--类型定义
+└─util	
 </pre>
