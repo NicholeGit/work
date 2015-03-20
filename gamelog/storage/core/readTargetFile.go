@@ -17,6 +17,7 @@ func _loadTargetFile(path string) (ret *UserFileSet, err error) {
 		helper.ERR("path cannot find")
 		return nil, err
 	}
+	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	ret = NewUserFileSet()
