@@ -41,7 +41,7 @@ func main() {
 	}
 	inco, err := core.NewInsertCore(*file, *path)
 	if err != nil {
-		helper.ERR("insertCore init is error")
+		helper.ERR("insertCore init is error:", err)
 		os.Exit(1)
 	}
 	inco.Run()
