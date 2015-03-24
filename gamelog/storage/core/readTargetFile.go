@@ -72,7 +72,6 @@ func _loadStorageFile(path string) (user *User, err error) {
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		// 是否为".storage.o"结尾
 		ret := strings.FieldsFunc(line, splitInit)
 		if len(ret) > 1 {
 			switch ret[0] {
@@ -101,12 +100,17 @@ func parseItem(str []string) (ret []Item) {
 				use, err2 := strconv.Atoi(under[1])
 				fix, err3 := strconv.Atoi(under[2])
 				if err1 != nil || err2 != nil || err3 != nil {
+					helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 					return
 				}
 				conut := _countUsable(use, fix)
 				item := Item{id, conut}
 				ret = append(ret, item)
+			} else {
+				helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 			}
+		} else {
+			helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 		}
 	}
 	return
