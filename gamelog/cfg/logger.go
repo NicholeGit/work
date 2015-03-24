@@ -48,7 +48,7 @@ func StartLogger(path string) {
 		path = /*os.Getenv("GOPATH") + */ "./" + path
 	}
 	t := time.Now() //获取当前时间的结构体
-	path = fmt.Sprintf("%s_%s.log", path, t.Format("20060102150405"))
+	path = fmt.Sprintf("%s_%s.log", path, t.Format("20060102"))
 
 	// 打开日志文件
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
