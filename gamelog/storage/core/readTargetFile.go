@@ -92,7 +92,7 @@ func parseItem(str []string) (ret []Item) {
 	for _, v := range str {
 		if strings.Count(v, "_") == 2 {
 			if v == "0_0_0" {
-				return
+				continue
 			}
 			under := strings.FieldsFunc(v, splitUnderline)
 			if len(under) > 2 {
@@ -101,7 +101,7 @@ func parseItem(str []string) (ret []Item) {
 				fix, err3 := strconv.Atoi(under[2])
 				if err1 != nil || err2 != nil || err3 != nil {
 					helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
-					return
+					continue
 				}
 				conut := _countUsable(use, fix)
 				item := Item{id, conut}
