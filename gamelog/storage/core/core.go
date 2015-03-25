@@ -192,7 +192,7 @@ func (this *InsertCore) updateDB(file string) {
 	if user, err := this.readfile(file); err == nil {
 		this.install(user)
 	} else {
-		helper.WARN(fmt.Sprintf("updateDB %v is err(%v)", user, err))
+		helper.WARN(fmt.Sprintf("updateDB %v(%s) is err(%v)", user, file, err))
 	}
 }
 
