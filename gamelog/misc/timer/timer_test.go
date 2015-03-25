@@ -9,7 +9,7 @@ func TestTimer(t *testing.T) {
 
 	now := time.Now().Unix()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		Add(int32(i), now+int64(i), ch)
 	}
 
@@ -17,7 +17,7 @@ func TestTimer(t *testing.T) {
 	for {
 		fmt.Println("timer event :", <-ch)
 		count++
-		if count == 10 {
+		if count == 3 {
 			break
 		}
 	}
