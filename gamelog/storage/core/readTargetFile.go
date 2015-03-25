@@ -90,10 +90,10 @@ func _loadStorageFile(path string) (user *User, err error) {
 
 func parseItem(str []string) (ret []Item) {
 	for _, v := range str {
-		if v == "0_0_0" {
-			return
-		}
 		if strings.Count(v, "_") == 2 {
+			if v == "0_0_0" {
+				return
+			}
 			under := strings.FieldsFunc(v, splitUnderline)
 			if len(under) > 2 {
 				id, err1 := strconv.Atoi(under[0])
@@ -109,8 +109,6 @@ func parseItem(str []string) (ret []Item) {
 			} else {
 				helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 			}
-		} else {
-			helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 		}
 	}
 	return
