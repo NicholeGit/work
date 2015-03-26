@@ -24,6 +24,54 @@ func Test_parseItem(t *testing.T) {
 	})
 }
 
+func Test_parseItemForce(t *testing.T) {
+	str := "DEPOSIT_ITEMS ({\"100313130_5_8\",\"100102496_8_8\",\"100101132_8_8\",\"0_0_0\",\"100112073_8_8\",})"
+	ret := parseItem(splitInitForce(str))
+	item := []Item{{100313130, 33}, {100102496, 36}, {100101132, 36}, {100112073, 36}}
+
+	Convey("暴力分割字符串", t, func() {
+		So(reflect.DeepEqual(ret, item), ShouldBeTrue)
+	})
+}
+
+func Benchmark_parseItem(b *testing.B) {
+	str := "DEPOSIT_ITEMS ({\"100313130_5_8\",\"100102496_8_8\",\"100101132_8_8\",\"0_0_0\",\"100112073_8_8\",})"
+	for i := 0; i < b.N; i++ {
+		strings.FieldsFunc(str, splitInit)
+	}
+}
+
+func Benchmark_parseItemForce(b *testing.B) {
+	str := "DEPOSIT_ITEMS ({\"100313130_5_8\",\"100102496_8_8\",\"100101132_8_8\",\"0_0_0\",\"100112073_8_8\",})"
+	for i := 0; i < b.N; i++ {
+		splitInitForce(str)
+	}
+}
+
+func Test_splitUnderlineForce(t *testing.T) {
+	str := "100313130_5_8"
+	ret := splitUnderlineForce(str)
+	item := []string{"100313130", "5", "8"}
+
+	Convey("暴力分割下划线", t, func() {
+		So(reflect.DeepEqual(ret, item), ShouldBeTrue)
+	})
+}
+
+func Benchmark_splitUnderline(b *testing.B) {
+	str := "100313130_5_8"
+	for i := 0; i < b.N; i++ {
+		strings.FieldsFunc(str, splitUnderline)
+	}
+}
+
+func Benchmark_splitUnderlineForce(b *testing.B) {
+	str := "100313130_5_8"
+	for i := 0; i < b.N; i++ {
+		splitUnderlineForce(str)
+	}
+}
+
 func Test_loadTargetFile(t *testing.T) {
 	filePath, err := _loadTargetFile("../../data/upinfo.tmp")
 	file := NewUserFileSet()

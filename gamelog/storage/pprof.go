@@ -9,6 +9,9 @@ import (
 	"github.com/NicholeGit/work/gamelog/cfg"
 )
 
+//打开效率检测 只需要在config文件中cpuprofile字段打开
+//go tool pprof storage storage.cpuprof
+
 func startPProf() {
 	config := cfg.Get()
 	cpuprofile := config["cpuprofile"]

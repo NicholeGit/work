@@ -2,6 +2,7 @@ package core
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strconv"
@@ -110,6 +111,53 @@ func parseItem(str []string) (ret []Item) {
 				helper.WARN(fmt.Sprintf("parseItem (%s) is err", v))
 			}
 		}
+	}
+	return
+}
+
+//用来替代strings.FieldsFunc(line, splitInit)
+//会提高12%效率
+func splitInitForce(str string) (ret []string) {
+	var delim = []byte(`","`)
+	line := []byte(str)
+	index := bytes.IndexByte(line, ' ')
+	if index == -1 {
+		return
+	}
+	prefix := line[:index]
+	ret = append(ret, string(prefix))
+	//	fmt.Println("前綴", string(prefix))
+
+	contentIndex1 := bytes.IndexByte(line, '{')
+	if contentIndex1 == -1 {
+		//		fmt.Println("沒有找到'{'")
+		return
+	}
+
+	contentIndex2 := bytes.IndexByte(line, '}')
+	if contentIndex2 == -1 {
+		//		fmt.Println("沒有找到'}'")
+		return
+	}
+	if contentIndex1+1 == contentIndex2 || contentIndex1+2 > contentIndex2-2 {
+		return
+	}
+
+	bytesArr := bytes.Split(line[contentIndex1+2:contentIndex2-2], delim)
+	for _, bs := range bytesArr {
+		ret = append(ret, string(bs))
+	}
+	return
+}
+
+//用来替代 strings.FieldsFunc(v, splitUnderline)
+//效率会降低2.5倍
+func splitUnderlineForce(str string) (ret []string) {
+	var delim = []byte(`_`)
+	line := []byte(str)
+	bytesArr := bytes.Split(line, delim)
+	for _, bs := range bytesArr {
+		ret = append(ret, string(bs))
 	}
 	return
 }
