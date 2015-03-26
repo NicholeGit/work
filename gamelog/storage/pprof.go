@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"runtime/pprof"
 
-	"github.com/xtaci/gonet/src/cfg"
+	"github.com/NicholeGit/work/gamelog/cfg"
 )
 
 func startPProf() {
