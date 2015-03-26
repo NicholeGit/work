@@ -44,5 +44,10 @@ func main() {
 		helper.ERR("insertCore init is error:", err)
 		os.Exit(1)
 	}
+
+	go SignalProc()
+
+	startPProf()
+	defer stopPProf()
 	inco.Run()
 }
